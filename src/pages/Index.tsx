@@ -1,15 +1,17 @@
 import { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { PomodoroTimer } from '@/components/timer/PomodoroTimer';
 import { AnalyticsDashboard } from '@/components/analytics/AnalyticsDashboard';
+import { SessionHistory } from '@/components/history/SessionHistory';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Timer, BarChart3, LogOut } from 'lucide-react';
+import { Timer, BarChart3, History, Settings, LogOut } from 'lucide-react';
 
 const Index = () => {
   const { user, loading, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState('timer');
+  const navigate = useNavigate();
 
   if (loading) {
     return (
@@ -28,23 +30,32 @@ const Index = () => {
       <header className="border-b border-border/50 px-4 py-3">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <h1 className="text-lg font-semibold">Pomodoro</h1>
-          <Button variant="ghost" size="sm" onClick={signOut} className="gap-2">
-            <LogOut className="w-4 h-4" />
-            <span className="hidden sm:inline">Sign out</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" onClick={() => navigate('/settings')}>
+              <Settings className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={signOut} className="gap-2">
+              <LogOut className="w-4 h-4" />
+              <span className="hidden sm:inline">Sign out</span>
+            </Button>
+          </div>
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          <TabsList className="grid w-full max-w-xs mx-auto grid-cols-2">
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-3">
             <TabsTrigger value="timer" className="gap-2">
               <Timer className="w-4 h-4" />
-              Timer
+              <span className="hidden sm:inline">Timer</span>
             </TabsTrigger>
             <TabsTrigger value="analytics" className="gap-2">
               <BarChart3 className="w-4 h-4" />
-              Analytics
+              <span className="hidden sm:inline">Analytics</span>
+            </TabsTrigger>
+            <TabsTrigger value="history" className="gap-2">
+              <History className="w-4 h-4" />
+              <span className="hidden sm:inline">History</span>
             </TabsTrigger>
           </TabsList>
 
@@ -56,6 +67,10 @@ const Index = () => {
 
           <TabsContent value="analytics" className="mt-0">
             <AnalyticsDashboard />
+          </TabsContent>
+
+          <TabsContent value="history" className="mt-0">
+            <SessionHistory />
           </TabsContent>
         </Tabs>
       </main>

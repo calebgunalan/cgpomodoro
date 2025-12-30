@@ -149,22 +149,37 @@ export type Database = {
           created_at: string
           daily_goal: number
           id: string
+          long_break_duration: number
+          short_break_duration: number
+          sound_enabled: boolean
+          sound_type: string
           updated_at: string
           user_id: string
+          work_duration: number
         }
         Insert: {
           created_at?: string
           daily_goal?: number
           id?: string
+          long_break_duration?: number
+          short_break_duration?: number
+          sound_enabled?: boolean
+          sound_type?: string
           updated_at?: string
           user_id: string
+          work_duration?: number
         }
         Update: {
           created_at?: string
           daily_goal?: number
           id?: string
+          long_break_duration?: number
+          short_break_duration?: number
+          sound_enabled?: boolean
+          sound_type?: string
           updated_at?: string
           user_id?: string
+          work_duration?: number
         }
         Relationships: [
           {
