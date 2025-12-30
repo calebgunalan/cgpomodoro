@@ -14,15 +14,31 @@ const DEFAULT_CONFIG: TimerConfig = {
   long_break: 15,
 };
 
-export function useTimer(onComplete?: (type: SessionType, duration: number) => void) {
+interface UseTimerOptions {
+  config?: TimerConfig;
+  onComplete?: (type: SessionType, duration: number) => void;
+}
+
+export function useTimer(options: UseTimerOptions = {}) {
+  const { config = DEFAULT_CONFIG, onComplete } = options;
+  
   const [sessionType, setSessionType] = useState<SessionType>('work');
-  const [timeLeft, setTimeLeft] = useState(DEFAULT_CONFIG.work * 60);
+  const [timeLeft, setTimeLeft] = useState(config.work * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [pomodorosCompleted, setPomodorosCompleted] = useState(0);
   const intervalRef = useRef<number | null>(null);
-  const startTimeRef = useRef<number | null>(null);
+  const configRef = useRef(config);
 
-  const totalTime = DEFAULT_CONFIG[sessionType] * 60;
+  // Update config ref when config changes
+  useEffect(() => {
+    configRef.current = config;
+    // Reset timer with new duration if not running
+    if (!isRunning) {
+      setTimeLeft(config[sessionType] * 60);
+    }
+  }, [config, sessionType, isRunning]);
+
+  const totalTime = config[sessionType] * 60;
 
   const clearTimer = useCallback(() => {
     if (intervalRef.current) {
@@ -35,7 +51,7 @@ export function useTimer(onComplete?: (type: SessionType, duration: number) => v
     clearTimer();
     setIsRunning(false);
     
-    const duration = DEFAULT_CONFIG[sessionType];
+    const duration = configRef.current[sessionType];
     onComplete?.(sessionType, duration);
 
     if (sessionType === 'work') {
@@ -44,14 +60,14 @@ export function useTimer(onComplete?: (type: SessionType, duration: number) => v
       
       if (newCount % 4 === 0) {
         setSessionType('long_break');
-        setTimeLeft(DEFAULT_CONFIG.long_break * 60);
+        setTimeLeft(configRef.current.long_break * 60);
       } else {
         setSessionType('short_break');
-        setTimeLeft(DEFAULT_CONFIG.short_break * 60);
+        setTimeLeft(configRef.current.short_break * 60);
       }
     } else {
       setSessionType('work');
-      setTimeLeft(DEFAULT_CONFIG.work * 60);
+      setTimeLeft(configRef.current.work * 60);
     }
   }, [clearTimer, onComplete, pomodorosCompleted, sessionType]);
 
@@ -72,7 +88,6 @@ export function useTimer(onComplete?: (type: SessionType, duration: number) => v
   }, [isRunning, clearTimer, handleComplete, timeLeft]);
 
   const start = useCallback(() => {
-    startTimeRef.current = Date.now();
     setIsRunning(true);
   }, []);
 
@@ -84,7 +99,7 @@ export function useTimer(onComplete?: (type: SessionType, duration: number) => v
   const reset = useCallback(() => {
     clearTimer();
     setIsRunning(false);
-    setTimeLeft(DEFAULT_CONFIG[sessionType] * 60);
+    setTimeLeft(configRef.current[sessionType] * 60);
   }, [clearTimer, sessionType]);
 
   const skip = useCallback(() => {
@@ -96,14 +111,14 @@ export function useTimer(onComplete?: (type: SessionType, duration: number) => v
       setPomodorosCompleted(newCount);
       if (newCount % 4 === 0) {
         setSessionType('long_break');
-        setTimeLeft(DEFAULT_CONFIG.long_break * 60);
+        setTimeLeft(configRef.current.long_break * 60);
       } else {
         setSessionType('short_break');
-        setTimeLeft(DEFAULT_CONFIG.short_break * 60);
+        setTimeLeft(configRef.current.short_break * 60);
       }
     } else {
       setSessionType('work');
-      setTimeLeft(DEFAULT_CONFIG.work * 60);
+      setTimeLeft(configRef.current.work * 60);
     }
   }, [clearTimer, pomodorosCompleted, sessionType]);
 
@@ -111,8 +126,16 @@ export function useTimer(onComplete?: (type: SessionType, duration: number) => v
     clearTimer();
     setIsRunning(false);
     setSessionType(type);
-    setTimeLeft(DEFAULT_CONFIG[type] * 60);
+    setTimeLeft(configRef.current[type] * 60);
   }, [clearTimer]);
+
+  const toggleRunning = useCallback(() => {
+    if (isRunning) {
+      pause();
+    } else {
+      start();
+    }
+  }, [isRunning, pause, start]);
 
   return {
     timeLeft,
@@ -125,5 +148,6 @@ export function useTimer(onComplete?: (type: SessionType, duration: number) => v
     reset,
     skip,
     switchSession,
+    toggleRunning,
   };
 }
