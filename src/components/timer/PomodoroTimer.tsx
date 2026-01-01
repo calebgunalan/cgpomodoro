@@ -8,14 +8,17 @@ import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useAchievements, UserStats } from '@/hooks/useAchievements';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { useAmbientSound } from '@/hooks/useAmbientSound';
 import { TimerDisplay } from './TimerDisplay';
 import { TimerControls } from './TimerControls';
 import { SessionTabs } from './SessionTabs';
 import { TaskSelector } from './TaskSelector';
 import { FocusMode } from './FocusMode';
+import { AmbientSoundPlayer } from '@/components/sounds/AmbientSoundPlayer';
+import { BreakSuggestions } from '@/components/breaks/BreakSuggestions';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import { Maximize2, Bell, BellOff } from 'lucide-react';
+import { Maximize2, Bell, BellOff, Sparkles } from 'lucide-react';
 
 export function PomodoroTimer() {
   const { tasks, selectedTask, setSelectedTask, addTask, updateTaskEstimate, incrementCompletedPomodoros } = useTasks();
@@ -26,7 +29,9 @@ export function PomodoroTimer() {
   const { permission, requestPermission, sendNotification, isSupported } = useNotifications();
   const { checkAndUnlockAchievements } = useAchievements();
   const { streak, todayStats, weeklyData } = useAnalytics();
+  const { stopSound: stopAmbient } = useAmbientSound();
   const [isFocusMode, setIsFocusMode] = useState(false);
+  const [showBreakSuggestions, setShowBreakSuggestions] = useState(false);
 
   const timerConfig = useMemo(() => ({
     work: settings?.work_duration ?? 25,
@@ -178,7 +183,7 @@ export function PomodoroTimer() {
           onSkip={skip}
         />
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap justify-center">
           <Button
             variant="ghost"
             size="sm"
@@ -189,6 +194,20 @@ export function PomodoroTimer() {
             Focus Mode
           </Button>
 
+          <AmbientSoundPlayer compact />
+
+          {sessionType !== 'work' && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowBreakSuggestions(true)}
+              className="gap-2 text-muted-foreground"
+            >
+              <Sparkles className="w-4 h-4" />
+              Break Ideas
+            </Button>
+          )}
+
           {isSupported && permission !== 'granted' && (
             <Button
               variant="ghost"
@@ -197,17 +216,18 @@ export function PomodoroTimer() {
               className="gap-2 text-muted-foreground"
             >
               <Bell className="w-4 h-4" />
-              Enable Notifications
+              Notifications
             </Button>
           )}
-
-          {permission === 'granted' && (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <BellOff className="w-3 h-3" />
-              Notifications on
-            </div>
-          )}
         </div>
+
+        {showBreakSuggestions && sessionType !== 'work' && (
+          <BreakSuggestions
+            breakType={sessionType === 'long_break' ? 'long' : 'short'}
+            sessionCount={pomodorosCompleted}
+            onClose={() => setShowBreakSuggestions(false)}
+          />
+        )}
       </div>
 
       <div className="text-center space-y-1">

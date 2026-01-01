@@ -8,6 +8,7 @@ export interface Task {
   color: string;
   estimated_pomodoros: number | null;
   completed_pomodoros: number;
+  category: string | null;
 }
 
 export function useTasks() {
@@ -100,6 +101,22 @@ export function useTasks() {
     }
   };
 
+  const updateTaskCategory = async (id: string, category: string | null) => {
+    const { error } = await supabase
+      .from('tasks')
+      .update({ category })
+      .eq('id', id);
+
+    if (!error) {
+      setTasks((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, category } : t))
+      );
+      if (selectedTask?.id === id) {
+        setSelectedTask((prev) => prev ? { ...prev, category } : prev);
+      }
+    }
+  };
+
   const deleteTask = async (id: string) => {
     const { error } = await supabase
       .from('tasks')
@@ -121,6 +138,7 @@ export function useTasks() {
     addTask,
     deleteTask,
     updateTaskEstimate,
+    updateTaskCategory,
     incrementCompletedPomodoros,
     loading,
     refetch: fetchTasks,
