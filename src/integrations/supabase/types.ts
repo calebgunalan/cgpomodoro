@@ -14,6 +14,38 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          achieved_at: string
+          achievement_type: string
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          achieved_at?: string
+          achievement_type: string
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          achieved_at?: string
+          achievement_type?: string
+          id?: string
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "achievements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daily_goals: {
         Row: {
           completed_pomodoros: number
@@ -115,21 +147,27 @@ export type Database = {
       tasks: {
         Row: {
           color: string | null
+          completed_pomodoros: number
           created_at: string
+          estimated_pomodoros: number | null
           id: string
           name: string
           user_id: string
         }
         Insert: {
           color?: string | null
+          completed_pomodoros?: number
           created_at?: string
+          estimated_pomodoros?: number | null
           id?: string
           name: string
           user_id: string
         }
         Update: {
           color?: string | null
+          completed_pomodoros?: number
           created_at?: string
+          estimated_pomodoros?: number | null
           id?: string
           name?: string
           user_id?: string

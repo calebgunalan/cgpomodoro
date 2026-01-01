@@ -4,9 +4,10 @@ import { useAuth } from '@/hooks/useAuth';
 import { PomodoroTimer } from '@/components/timer/PomodoroTimer';
 import { AnalyticsDashboard } from '@/components/analytics/AnalyticsDashboard';
 import { SessionHistory } from '@/components/history/SessionHistory';
+import { AchievementsList } from '@/components/achievements/AchievementsList';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Timer, BarChart3, History, Settings, LogOut } from 'lucide-react';
+import { Timer, BarChart3, History, Settings, LogOut, Trophy } from 'lucide-react';
 
 const Index = () => {
   const { user, loading, signOut } = useAuth();
@@ -44,7 +45,7 @@ const Index = () => {
 
       <main className="max-w-4xl mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-3">
+          <TabsList className="grid w-full max-w-lg mx-auto grid-cols-4">
             <TabsTrigger value="timer" className="gap-2">
               <Timer className="w-4 h-4" />
               <span className="hidden sm:inline">Timer</span>
@@ -56,6 +57,10 @@ const Index = () => {
             <TabsTrigger value="history" className="gap-2">
               <History className="w-4 h-4" />
               <span className="hidden sm:inline">History</span>
+            </TabsTrigger>
+            <TabsTrigger value="achievements" className="gap-2">
+              <Trophy className="w-4 h-4" />
+              <span className="hidden sm:inline">Badges</span>
             </TabsTrigger>
           </TabsList>
 
@@ -71,6 +76,10 @@ const Index = () => {
 
           <TabsContent value="history" className="mt-0">
             <SessionHistory />
+          </TabsContent>
+
+          <TabsContent value="achievements" className="mt-0">
+            <AchievementsList />
           </TabsContent>
         </Tabs>
       </main>
