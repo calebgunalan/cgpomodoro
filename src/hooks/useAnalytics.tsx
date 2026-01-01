@@ -41,20 +41,20 @@ export function useAnalytics() {
   const fetchData = async () => {
     if (!user) return;
 
-    const thirtyDaysAgo = subDays(new Date(), 30).toISOString();
+    const ninetyDaysAgo = subDays(new Date(), 90).toISOString();
 
     const [goalsRes, sessionsRes, tasksRes, settingsRes] = await Promise.all([
       supabase
         .from('daily_goals')
         .select('*')
         .eq('user_id', user.id)
-        .gte('date', thirtyDaysAgo.split('T')[0])
+        .gte('date', ninetyDaysAgo.split('T')[0])
         .order('date', { ascending: false }),
       supabase
         .from('pomodoro_sessions')
         .select('*')
         .eq('user_id', user.id)
-        .gte('completed_at', thirtyDaysAgo)
+        .gte('completed_at', ninetyDaysAgo)
         .order('completed_at', { ascending: false }),
       supabase
         .from('tasks')
@@ -179,6 +179,28 @@ export function useAnalytics() {
     return Object.values(breakdown).sort((a, b) => b.minutes - a.minutes);
   }, [sessions, tasks]);
 
+  // Heatmap data for the last 90 days
+  const heatmapData = useMemo(() => {
+    const today = new Date();
+    const days = eachDayOfInterval({ 
+      start: subDays(today, 90), 
+      end: today 
+    });
+
+    return days.map((day) => {
+      const dateStr = format(day, 'yyyy-MM-dd');
+      const daySessions = sessions.filter((s) => {
+        const sessionDate = new Date(s.completed_at);
+        return isSameDay(sessionDate, day) && s.session_type === 'work';
+      });
+
+      return {
+        date: dateStr,
+        count: daySessions.length,
+      };
+    });
+  }, [sessions]);
+
   const updateDailyGoal = async (target: number) => {
     if (!user) return;
 
@@ -197,6 +219,7 @@ export function useAnalytics() {
     weeklyData,
     monthlyData,
     taskBreakdown,
+    heatmapData,
     userSettings,
     updateDailyGoal,
     loading,
