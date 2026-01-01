@@ -6,6 +6,8 @@ export interface Task {
   id: string;
   name: string;
   color: string;
+  estimated_pomodoros: number | null;
+  completed_pomodoros: number;
 }
 
 export function useTasks() {
@@ -41,12 +43,17 @@ export function useTasks() {
     setLoading(false);
   };
 
-  const addTask = async (name: string, color: string = '#8B5CF6') => {
+  const addTask = async (name: string, color: string = '#8B5CF6', estimatedPomodoros?: number) => {
     if (!user) return null;
 
     const { data, error } = await supabase
       .from('tasks')
-      .insert({ user_id: user.id, name, color })
+      .insert({ 
+        user_id: user.id, 
+        name, 
+        color,
+        estimated_pomodoros: estimatedPomodoros ?? null,
+      })
       .select()
       .single();
 
@@ -55,6 +62,42 @@ export function useTasks() {
       return data;
     }
     return null;
+  };
+
+  const updateTaskEstimate = async (id: string, estimatedPomodoros: number | null) => {
+    const { error } = await supabase
+      .from('tasks')
+      .update({ estimated_pomodoros: estimatedPomodoros })
+      .eq('id', id);
+
+    if (!error) {
+      setTasks((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, estimated_pomodoros: estimatedPomodoros } : t))
+      );
+      if (selectedTask?.id === id) {
+        setSelectedTask((prev) => prev ? { ...prev, estimated_pomodoros: estimatedPomodoros } : prev);
+      }
+    }
+  };
+
+  const incrementCompletedPomodoros = async (id: string) => {
+    const task = tasks.find((t) => t.id === id);
+    if (!task) return;
+
+    const newCount = task.completed_pomodoros + 1;
+    const { error } = await supabase
+      .from('tasks')
+      .update({ completed_pomodoros: newCount })
+      .eq('id', id);
+
+    if (!error) {
+      setTasks((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, completed_pomodoros: newCount } : t))
+      );
+      if (selectedTask?.id === id) {
+        setSelectedTask((prev) => prev ? { ...prev, completed_pomodoros: newCount } : prev);
+      }
+    }
   };
 
   const deleteTask = async (id: string) => {
@@ -77,6 +120,8 @@ export function useTasks() {
     setSelectedTask,
     addTask,
     deleteTask,
+    updateTaskEstimate,
+    incrementCompletedPomodoros,
     loading,
     refetch: fetchTasks,
   };
