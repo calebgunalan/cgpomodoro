@@ -7,12 +7,37 @@ import { SessionHistory } from '@/components/history/SessionHistory';
 import { AchievementsList } from '@/components/achievements/AchievementsList';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Timer, BarChart3, History, Settings, LogOut, Trophy } from 'lucide-react';
+import { Timer, BarChart3, History, Settings, LogOut, Trophy, Brain, Link2, Users } from 'lucide-react';
+import { AIInsightsPanel } from '@/components/insights/AIInsightsPanel';
+import { IntegrationsPanel } from '@/components/integrations/IntegrationsPanel';
+import { TeamWorkspacePanel } from '@/components/team/TeamWorkspacePanel';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 
 const Index = () => {
   const { user, loading, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState('timer');
   const navigate = useNavigate();
+
+  const tabs = ['timer', 'analytics', 'history', 'achievements', 'insights', 'integrations', 'team'];
+  
+  useKeyboardShortcuts({
+    on1: () => setActiveTab('timer'),
+    on2: () => setActiveTab('analytics'),
+    on3: () => setActiveTab('history'),
+    on4: () => setActiveTab('achievements'),
+    on5: () => setActiveTab('insights'),
+    on6: () => setActiveTab('integrations'),
+    on7: () => setActiveTab('team'),
+    onBracketLeft: () => {
+      const idx = tabs.indexOf(activeTab);
+      setActiveTab(tabs[idx > 0 ? idx - 1 : tabs.length - 1]);
+    },
+    onBracketRight: () => {
+      const idx = tabs.indexOf(activeTab);
+      setActiveTab(tabs[(idx + 1) % tabs.length]);
+    },
+    enabled: true,
+  });
 
   if (loading) {
     return (
@@ -45,22 +70,34 @@ const Index = () => {
 
       <main className="max-w-4xl mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          <TabsList className="grid w-full max-w-lg mx-auto grid-cols-4">
-            <TabsTrigger value="timer" className="gap-2">
+          <TabsList className="grid w-full max-w-3xl mx-auto grid-cols-7">
+            <TabsTrigger value="timer" className="gap-1.5">
               <Timer className="w-4 h-4" />
-              <span className="hidden sm:inline">Timer</span>
+              <span className="hidden md:inline">Timer</span>
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="gap-2">
+            <TabsTrigger value="analytics" className="gap-1.5">
               <BarChart3 className="w-4 h-4" />
-              <span className="hidden sm:inline">Analytics</span>
+              <span className="hidden md:inline">Stats</span>
             </TabsTrigger>
-            <TabsTrigger value="history" className="gap-2">
+            <TabsTrigger value="history" className="gap-1.5">
               <History className="w-4 h-4" />
-              <span className="hidden sm:inline">History</span>
+              <span className="hidden md:inline">History</span>
             </TabsTrigger>
-            <TabsTrigger value="achievements" className="gap-2">
+            <TabsTrigger value="achievements" className="gap-1.5">
               <Trophy className="w-4 h-4" />
-              <span className="hidden sm:inline">Badges</span>
+              <span className="hidden md:inline">Badges</span>
+            </TabsTrigger>
+            <TabsTrigger value="insights" className="gap-1.5">
+              <Brain className="w-4 h-4" />
+              <span className="hidden md:inline">Insights</span>
+            </TabsTrigger>
+            <TabsTrigger value="integrations" className="gap-1.5">
+              <Link2 className="w-4 h-4" />
+              <span className="hidden md:inline">Apps</span>
+            </TabsTrigger>
+            <TabsTrigger value="team" className="gap-1.5">
+              <Users className="w-4 h-4" />
+              <span className="hidden md:inline">Team</span>
             </TabsTrigger>
           </TabsList>
 
@@ -80,6 +117,18 @@ const Index = () => {
 
           <TabsContent value="achievements" className="mt-0">
             <AchievementsList />
+          </TabsContent>
+
+          <TabsContent value="insights" className="mt-0">
+            <AIInsightsPanel />
+          </TabsContent>
+
+          <TabsContent value="integrations" className="mt-0">
+            <IntegrationsPanel />
+          </TabsContent>
+
+          <TabsContent value="team" className="mt-0">
+            <TeamWorkspacePanel />
           </TabsContent>
         </Tabs>
       </main>
