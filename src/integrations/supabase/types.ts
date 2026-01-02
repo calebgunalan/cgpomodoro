@@ -46,6 +46,27 @@ export type Database = {
           },
         ]
       }
+      ai_insights: {
+        Row: {
+          generated_at: string
+          id: string
+          insights: Json
+          user_id: string
+        }
+        Insert: {
+          generated_at?: string
+          id?: string
+          insights: Json
+          user_id: string
+        }
+        Update: {
+          generated_at?: string
+          id?: string
+          insights?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       daily_goals: {
         Row: {
           completed_pomodoros: number
@@ -80,6 +101,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      external_integrations: {
+        Row: {
+          access_token: string | null
+          created_at: string
+          id: string
+          provider: string
+          refresh_token: string | null
+          settings: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token?: string | null
+          created_at?: string
+          id?: string
+          provider: string
+          refresh_token?: string | null
+          settings?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string | null
+          created_at?: string
+          id?: string
+          provider?: string
+          refresh_token?: string | null
+          settings?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       pomodoro_sessions: {
         Row: {
@@ -185,6 +239,76 @@ export type Database = {
           },
         ]
       }
+      team_focus_sessions: {
+        Row: {
+          duration_minutes: number
+          ends_at: string
+          id: string
+          is_active: boolean
+          session_type: string
+          started_at: string
+          started_by: string
+          workspace_id: string
+        }
+        Insert: {
+          duration_minutes?: number
+          ends_at: string
+          id?: string
+          is_active?: boolean
+          session_type?: string
+          started_at?: string
+          started_by: string
+          workspace_id: string
+        }
+        Update: {
+          duration_minutes?: number
+          ends_at?: string
+          id?: string
+          is_active?: boolean
+          session_type?: string
+          started_at?: string
+          started_by?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_focus_sessions_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_session_participants: {
+        Row: {
+          id: string
+          joined_at: string
+          team_session_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          team_session_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          team_session_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_session_participants_team_session_id_fkey"
+            columns: ["team_session_id"]
+            isOneToOne: false
+            referencedRelation: "team_focus_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_settings: {
         Row: {
           created_at: string
@@ -231,6 +355,62 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      workspace_members: {
+        Row: {
+          id: string
+          joined_at: string
+          role: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_members_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspaces: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          owner_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          owner_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          owner_id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
     }
     Views: {
