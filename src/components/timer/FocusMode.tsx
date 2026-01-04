@@ -1,8 +1,9 @@
-import { useEffect } from 'react';
-import { X, Pause, Play, RotateCcw, SkipForward } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { X, Pause, Play, RotateCcw, SkipForward, Volume2, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SessionType } from '@/hooks/useTimer';
 import { cn } from '@/lib/utils';
+import { useAmbientSound } from '@/hooks/useAmbientSound';
 
 interface FocusModeProps {
   timeLeft: number;
@@ -10,6 +11,8 @@ interface FocusModeProps {
   sessionType: SessionType;
   isRunning: boolean;
   taskName?: string;
+  pomodorosCompleted?: number;
+  dailyGoal?: number;
   onStart: () => void;
   onPause: () => void;
   onReset: () => void;
@@ -23,6 +26,8 @@ export function FocusMode({
   sessionType,
   isRunning,
   taskName,
+  pomodorosCompleted = 0,
+  dailyGoal = 8,
   onStart,
   onPause,
   onReset,
@@ -32,6 +37,21 @@ export function FocusMode({
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
   const progress = ((totalTime - timeLeft) / totalTime) * 100;
+  const [dimLevel, setDimLevel] = useState(0);
+  
+  const { currentSound, isPlaying: isSoundPlaying, toggleSound, stopSound: stopAmbient } = useAmbientSound();
+
+  // Gradually dim the interface when timer is running
+  useEffect(() => {
+    if (isRunning && sessionType === 'work') {
+      const timer = setInterval(() => {
+        setDimLevel((prev) => Math.min(prev + 0.02, 0.4));
+      }, 1000);
+      return () => clearInterval(timer);
+    } else {
+      setDimLevel(0);
+    }
+  }, [isRunning, sessionType]);
 
   // Lock scroll and hide overflow when in focus mode
   useEffect(() => {
@@ -52,6 +72,12 @@ export function FocusMode({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onExit]);
 
+  const handleToggleSound = () => {
+    if (currentSound) {
+      toggleSound(currentSound);
+    }
+  };
+
   const sessionColors = {
     work: 'text-primary',
     short_break: 'text-emerald-400',
@@ -64,17 +90,53 @@ export function FocusMode({
     long_break: 'Long Break',
   };
 
+  const dailyProgress = Math.min((pomodorosCompleted / dailyGoal) * 100, 100);
+
   return (
     <div className="fixed inset-0 z-50 bg-background flex flex-col items-center justify-center">
-      {/* Exit button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={onExit}
-        className="absolute top-4 right-4 text-muted-foreground hover:text-foreground"
-      >
-        <X className="w-6 h-6" />
-      </Button>
+      {/* Dim overlay when running */}
+      {dimLevel > 0 && (
+        <div 
+          className="absolute inset-0 bg-black pointer-events-none transition-opacity duration-1000"
+          style={{ opacity: dimLevel }}
+        />
+      )}
+
+      {/* Top bar with sound control and progress */}
+      <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          {currentSound && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleToggleSound}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              {isSoundPlaying ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+            </Button>
+          )}
+        </div>
+        
+        {/* Daily progress mini display */}
+        <div className="flex items-center gap-2 text-muted-foreground text-sm">
+          <span>{pomodorosCompleted}/{dailyGoal} today</span>
+          <div className="w-20 h-1.5 bg-muted/30 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-primary/70 rounded-full transition-all duration-500"
+              style={{ width: `${dailyProgress}%` }}
+            />
+          </div>
+        </div>
+        
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onExit}
+          className="text-muted-foreground hover:text-foreground"
+        >
+          <X className="w-6 h-6" />
+        </Button>
+      </div>
 
       {/* Session type label */}
       <div className={cn('text-lg font-medium mb-4', sessionColors[sessionType])}>
