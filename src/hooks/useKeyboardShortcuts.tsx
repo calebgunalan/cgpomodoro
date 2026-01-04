@@ -13,6 +13,7 @@ interface KeyboardShortcutsConfig {
   on7?: () => void;
   onBracketLeft?: () => void;
   onBracketRight?: () => void;
+  onQuestionMark?: () => void;
   enabled?: boolean;
 }
 
@@ -29,6 +30,7 @@ export function useKeyboardShortcuts({
   on7,
   onBracketLeft,
   onBracketRight,
+  onQuestionMark,
   enabled = true,
 }: KeyboardShortcutsConfig) {
   const handleKeyDown = useCallback(
@@ -96,8 +98,14 @@ export function useKeyboardShortcuts({
           onBracketRight?.();
           break;
       }
+
+      // Handle '?' key (Shift + / or Shift + ?)
+      if (event.shiftKey && (event.key === '?' || event.code === 'Slash')) {
+        event.preventDefault();
+        onQuestionMark?.();
+      }
     },
-    [onSpace, onR, onS, on1, on2, on3, on4, on5, on6, on7, onBracketLeft, onBracketRight]
+    [onSpace, onR, onS, on1, on2, on3, on4, on5, on6, on7, onBracketLeft, onBracketRight, onQuestionMark]
   );
 
   useEffect(() => {
