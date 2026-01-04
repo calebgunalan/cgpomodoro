@@ -7,16 +7,28 @@ import { SessionHistory } from '@/components/history/SessionHistory';
 import { AchievementsList } from '@/components/achievements/AchievementsList';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Timer, BarChart3, History, Settings, LogOut, Trophy, Brain, Link2, Users } from 'lucide-react';
+import { Timer, BarChart3, History, Settings, LogOut, Trophy, Brain, Link2, Users, Keyboard } from 'lucide-react';
 import { AIInsightsPanel } from '@/components/insights/AIInsightsPanel';
 import { IntegrationsPanel } from '@/components/integrations/IntegrationsPanel';
 import { TeamWorkspacePanel } from '@/components/team/TeamWorkspacePanel';
+import { KeyboardShortcutsModal } from '@/components/help/KeyboardShortcutsModal';
+import { TabBadge } from '@/components/ui/tab-badge';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { useTasks } from '@/hooks/useTasks';
+import { useAIInsights } from '@/hooks/useAIInsights';
 
 const Index = () => {
   const { user, loading, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState('timer');
+  const [showShortcuts, setShowShortcuts] = useState(false);
   const navigate = useNavigate();
+  
+  const { tasks } = useTasks();
+  const { insights } = useAIInsights();
+  
+  // Calculate badge counts
+  const pendingTasksCount = tasks.filter(t => t.completed_pomodoros < (t.estimated_pomodoros || 1)).length;
+  const hasNewInsights = insights ? 1 : 0;
 
   const tabs = ['timer', 'analytics', 'history', 'achievements', 'insights', 'integrations', 'team'];
   
@@ -36,6 +48,7 @@ const Index = () => {
       const idx = tabs.indexOf(activeTab);
       setActiveTab(tabs[(idx + 1) % tabs.length]);
     },
+    onQuestionMark: () => setShowShortcuts(true),
     enabled: true,
   });
 
@@ -57,6 +70,14 @@ const Index = () => {
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <h1 className="text-lg font-semibold">Pomodoro</h1>
           <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setShowShortcuts(true)}
+              title="Keyboard shortcuts (?)"
+            >
+              <Keyboard className="w-4 h-4" />
+            </Button>
             <Button variant="ghost" size="icon" onClick={() => navigate('/settings')}>
               <Settings className="w-4 h-4" />
             </Button>
@@ -71,9 +92,10 @@ const Index = () => {
       <main className="max-w-4xl mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
           <TabsList className="grid w-full max-w-3xl mx-auto grid-cols-7">
-            <TabsTrigger value="timer" className="gap-1.5">
+            <TabsTrigger value="timer" className="gap-1.5 relative">
               <Timer className="w-4 h-4" />
               <span className="hidden md:inline">Timer</span>
+              <TabBadge count={pendingTasksCount} />
             </TabsTrigger>
             <TabsTrigger value="analytics" className="gap-1.5">
               <BarChart3 className="w-4 h-4" />
@@ -87,9 +109,10 @@ const Index = () => {
               <Trophy className="w-4 h-4" />
               <span className="hidden md:inline">Badges</span>
             </TabsTrigger>
-            <TabsTrigger value="insights" className="gap-1.5">
+            <TabsTrigger value="insights" className="gap-1.5 relative">
               <Brain className="w-4 h-4" />
               <span className="hidden md:inline">Insights</span>
+              <TabBadge count={hasNewInsights} variant="success" />
             </TabsTrigger>
             <TabsTrigger value="integrations" className="gap-1.5">
               <Link2 className="w-4 h-4" />
@@ -132,6 +155,8 @@ const Index = () => {
           </TabsContent>
         </Tabs>
       </main>
+      
+      <KeyboardShortcutsModal open={showShortcuts} onOpenChange={setShowShortcuts} />
     </div>
   );
 };
